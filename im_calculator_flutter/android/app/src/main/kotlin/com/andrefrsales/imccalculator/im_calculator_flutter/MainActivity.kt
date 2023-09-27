@@ -1,0 +1,6 @@
+package com.andrefrsales.imccalculator.im_calculator_flutter
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity() {
+}
