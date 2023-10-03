@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:im_calculator_flutter/app/model/imc.dart';
+import 'package:im_calculator_flutter/app/repositories/imc_repository.dart';
+import 'package:im_calculator_flutter/utils/imc_calculator.dart';
 import 'package:im_calculator_flutter/utils/validate_fields.dart';
 
 class IMCScreen extends StatefulWidget {
@@ -13,8 +15,22 @@ class _IMCScreenState extends State<IMCScreen> {
   var weightTextFieldController = TextEditingController();
   var heightTextFieldController = TextEditingController();
   var imcList = <IMC>[];
+  late IMCRepository imcRepository;
+  var imcCalculator = IMCCalculator();
   bool isWeightValid = true;
   bool isHeightValid = true;
+
+  @override
+  void initState() {
+    fetchData();
+    super.initState();
+  }
+
+  fetchData() async {
+    imcRepository = await IMCRepository.load();
+    imcList = imcRepository.getData();
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +40,8 @@ class _IMCScreenState extends State<IMCScreen> {
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             weightTextFieldController.clear();
-            heightTextFieldController.clear();
+            heightTextFieldController.text =
+                imcList.lastOrNull?.height.toString() ?? "";
             isWeightValid = true;
             isHeightValid = true;
             showModalBottomSheet(
@@ -99,10 +116,9 @@ class _IMCScreenState extends State<IMCScreen> {
                                   });
 
                                   if (isWeightValid && isHeightValid) {
-                                    setState(() {
-                                      imcList.add(IMC(weight, height));
-                                      Navigator.pop(context);
-                                    });
+                                    imcRepository.save(IMC(weight, height));
+                                    Navigator.pop(context);
+                                    fetchData();
                                   }
                                 },
                                 child: const Text(
@@ -137,11 +153,11 @@ class _IMCScreenState extends State<IMCScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text("Peso: ${imc.weight}"),
-                          Text("Altura: ${imc.height}"),
+                          Text("Altura: ${imcList.last.height}"),
                         ],
                       ),
                       trailing: Text(
-                        imc.getScale(),
+                        imcCalculator.getScale(imc),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
